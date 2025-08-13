@@ -11,6 +11,12 @@
 
 The UNIC-CASS IC Design Tools repository provides a comprehensive, open-source suite of tools for Integrated Circuit (IC) design, simulation, and verification. This project is part of the Universalization of IC Design from CASS (UNIC-CASS) program—a structured, end-to-end IC design-to-test experiential learning initiative.
 
+This work is based on:
+
+- Johannes Kepler University (JKU) Docker Image
+- GoCD NGSpice Agents for CICD VLSI Verification
+- Open Source Integrated Circuits Docker Stacks
+
 We welcome contributions from the global IC design community!
 
 ---
