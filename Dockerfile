@@ -23,9 +23,9 @@ ARG MAGIC_REPO_URL="https://github.com/RTimothyEdwards/magic.git"
 ARG MAGIC_REPO_COMMIT="8.3.522"
 ARG MAGIC_NAME="magic"
 
-# Apr 15, 2025 (dev)
+# Sept 3, 2025 (dev)
 ARG IHP_PDK_REPO_URL="https://github.com/IHP-GmbH/IHP-Open-PDK.git"
-ARG IHP_PDK_REPO_COMMIT="0854e9bcd558b68c573149038b4c95706314e2f1"
+ARG IHP_PDK_REPO_COMMIT="38ed2cd8da877dbba60d480d3d8bbe1a0ff3c5d4"
 ARG IHP_PDK_NAME="ihp-sg13g2"
 
 # Oct 30, 2023 (master)
