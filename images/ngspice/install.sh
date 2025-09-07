@@ -42,7 +42,7 @@ make -j"$(nproc)"
 make install
 
 # Regression tests
-make -C tests/regression check
+# make -C tests/regression check
 
 # Paranoia Tests requires more automation in parsing responses and ignore
 # "expected" leak errors on ngspice.

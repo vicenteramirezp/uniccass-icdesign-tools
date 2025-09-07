@@ -9,7 +9,7 @@ BOOST_VER_MIN=82
 BOOST_BUILD=0
 BOOST_VERSION="$BOOST_VER_MAJ.$BOOST_VER_MIN.$BOOST_BUILD"
 
-wget --no-verbose https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}.tar.gz
+curl -L -o boost-${BOOST_VERSION}.tar.gz https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}.tar.gz
 tar -xf boost-${BOOST_VERSION}.tar.gz
 
 cd boost-${BOOST_VERSION}
