@@ -416,7 +416,7 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 
 COPY --from=open_pdks  ${PDK_ROOT}                  ${PDK_ROOT}
 COPY --from=ihp_pdk    ${PDK_ROOT}/${IHP_PDK_NAME}  ${PDK_ROOT}/${IHP_PDK_NAME}
-COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common
+# COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common  # Skipped: or-tools conflicts with Nix
 COPY --from=ihp_pdk    ${TOOLS}/openvaf             ${TOOLS}/openvaf
 COPY --from=ngspice    ${TOOLS}/ngspice             ${TOOLS}/ngspice
 COPY --from=xschem     ${TOOLS}/xschem              ${TOOLS}/xschem
@@ -427,7 +427,7 @@ COPY --from=cvc_rv     ${TOOLS}/cvc_rv              ${TOOLS}/cvc_rv
 COPY --from=verilator  ${TOOLS}/verilator           ${TOOLS}/verilator
 COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
-COPY --from=openroad   ${TOOLS}/openroad            ${TOOLS}/openroad
+# COPY --from=openroad   ${TOOLS}/openroad            ${TOOLS}/openroad  # Skipped: Use OpenROAD from Nix instead
 COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts   ${TOOLS}/OpenROAD-flow-scripts
 
 
@@ -453,7 +453,62 @@ ENV NGSPICE_REPO_COMMIT=${NGSPICE_REPO_COMMIT} \
     XSCHEM_REPO_COMMIT=${XSCHEM_REPO_COMMIT} \
     NETGEN_REPO_COMMIT=${NETGEN_REPO_COMMIT}
 
-FROM usm-vlsi-tools AS usm-vlsi-tools-temp
+#######################################################################
+# Add Nix package manager and LibreLane
+#######################################################################
+FROM usm-vlsi-tools AS usm-vlsi-tools-nix
+USER root
+
+# Install sudo for Nix installer
+RUN apt-get update && apt-get install -y sudo && rm -rf /var/lib/apt/lists/*
+
+# Switch to designer user to install Nix in single-user mode
+USER designer
+
+# Install Nix in single-user mode for designer user
+RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --yes
+
+# Configure Nix with custom substituters and enable flakes
+RUN mkdir -p ~/.config/nix && \
+    echo 'extra-substituters = https://nix-cache.fossi-foundation.org' > ~/.config/nix/nix.conf && \
+    echo 'extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=' >> ~/.config/nix/nix.conf && \
+    echo 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf
+
+# Add USER variable to .profile (required by nix.sh)
+RUN sed -i '/if \[ -e \/home\/designer\/.nix-profile/i export USER=designer' ~/.profile
+
+# Clone LibreLane repository
+USER root
+RUN git clone https://github.com/librelane/librelane.git /opt/librelane && \
+    chown -R designer:designer /opt/librelane
+
+# Create /opt/pdks/ciel with proper permissions for LibreLane
+RUN mkdir -p /opt/pdks/ciel && chown -R designer:designer /opt/pdks/ciel
+
+USER designer
+ENV HOME=/home/designer USER=designer
+SHELL ["/bin/bash", "-c"]
+
+# Install LibreLane from dev branch using Nix
+RUN cd /opt/librelane && \
+    git checkout dev && \
+    source ~/.nix-profile/etc/profile.d/nix.sh && \
+    nix profile install . --extra-experimental-features "nix-command flakes"
+
+# Verify LibreLane installation
+RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
+    librelane --version
+
+# Configure /etc/bash.bashrc for interactive shells and replace .bashrc with Nix-compatible version
+USER root
+RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
+    cp /images/final_structure/configure/etc_bash.bashrc_nix /etc/bash.bashrc && \
+    cp /images/final_structure/configure/.bashrc /home/designer/.bashrc && \
+    chown designer:designer /home/designer/.bashrc
+
+USER designer
+
+FROM usm-vlsi-tools-nix AS usm-vlsi-tools-temp
 USER root
 
 USER designer
