@@ -1,6 +1,6 @@
 # UNIC-CASS IC Design Tools
 
-[![Release](https://img.shields.io/badge/Release-isaiassh%2Funic--cass--tools--1.0.0-blue?style=flat-square&logo=docker)](https://hub.docker.com/r/isaiassh/unic-cass-tools/tags)
+[![Release](https://img.shields.io/badge/Release-isaiassh%2Funic--cass--tools--1.0.3--nix-blue?style=flat-square&logo=docker)](https://hub.docker.com/r/isaiassh/unic-cass-tools/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg?style=flat-square)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/unic-cass/uniccass-icdesign-tools?style=flat-square&label=Issues&logo=github)](https://github.com/unic-cass/uniccass-icdesign-tools/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/unic-cass/uniccass-icdesign-tools?style=flat-square&label=PRs&logo=github)](https://github.com/unic-cass/uniccass-icdesign-tools/pulls)
@@ -13,9 +13,12 @@ The UNIC-CASS IC Design Tools repository provides a comprehensive, open-source s
 
 This work is based on:
 
-- Johannes Kepler University (JKU) Docker Image
+- [Johannes Kepler University (JKU) IIC-OSIC-TOOLS Docker Image](https://github.com/iic-jku/IIC-OSIC-TOOLS)
+- [LibreLane ASIC Implementation Flow](https://github.com/librelane/librelane)
 - GoCD NGSpice Agents for CICD VLSI Verification
 - Open Source Integrated Circuits Docker Stacks
+
+**New in v1.0.3**: This image now integrates **[LibreLane](https://github.com/librelane/librelane)** (v3.0.0.dev40), a modern ASIC implementation flow based on OpenROAD, Yosys, Magic, and Netgen. LibreLane provides a complete RTL-to-GDSII flow with support for IHP-sg13g2, Sky130, and GF180MCU PDKs, powered by the Nix package manager for reproducible builds.
 
 We welcome contributions from the global IC design community!
 
@@ -24,17 +27,8 @@ We welcome contributions from the global IC design community!
 ## Supported Operating Systems
 
 - **Linux** (recommended)
-- **Windows** (via WSL)
+- **Windows** (via WSL 2)
 - **macOS** (experimental, community support encouraged)
-
----
-
-## Prerequisites
-
-- **Git** (for cloning the repository)
-- **Docker** (for containerized tool environments)
-- **Python 3.7+** (for scripting and automation)
-- **WSL 2** (for Windows users, recommended)
 
 ---
 
@@ -75,41 +69,58 @@ We welcome contributions from the global IC design community!
 
 4. **For GUI tools, use [VcXsrv](https://sourceforge.net/projects/vcxsrv/) or similar X server.**
 
-### macOS
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/unic-cass/uniccass-icdesign-tools.git
-   cd uniccass-icdesign-tools
-   ```
-
-2. **Install Docker Desktop for Mac.**
-3. **Build and run:**
-   ```bash
-   make
-   ```
-
-4. **Note:** Some tools may require additional configuration or may not be fully supported.
+5. **Note:** Some tools may require additional configuration or may not be fully supported.
 
 ---
 
 ## Installed Tools / PDKs
 
-| Tool         | Description                                         |
-|--------------|-----------------------------------------------------|
-| ngspice      | SPICE analog and mixed-signal simulator             |
-| xschem       | Schematic Editor                                    |
-| magic        | Layout editor with DRC/Extraction capabilities      |
-| klayout      | Layout viewer and editor for GDS                    |
-| netgen       | Netlist Comparison                                  |
-| cvc          | Circuit validity checker                            |
-| cace         | Circuit Characterization engine                     |
-| gdsfactory   | Python module for GDS generation                    |
-| glayout      | Python module for PDK-agnostic layout automation    |
-| pygmid       | Python module for systematic circuit sizing         |
-| openvaf      | Verilog-A to OSDI compiler                          |
+| Tool         | Description                                         | Source |
+|--------------|-----------------------------------------------------|--------|
+| **librelane** | Complete RTL-to-GDSII ASIC implementation flow     | Nix    |
+| openroad     | Physical design platform (integrated with LibreLane)| Nix    |
+| ngspice      | SPICE analog and mixed-signal simulator             | System |
+| xschem       | Schematic Editor                                    | System |
+| magic        | Layout editor with DRC/Extraction capabilities      | System |
+| klayout      | Layout viewer and editor for GDS                    | Nix    |
+| netgen       | Netlist Comparison                                  | System |
+| yosys        | RTL synthesis framework                             | System |
+| verilator    | Verilog simulator                                   | System |
+| iverilog     | Icarus Verilog simulator                            | System |
+| cvc          | Circuit validity checker                            | System |
+| cace         | Circuit Characterization engine                     | System |
+| gdsfactory   | Python module for GDS generation                    | System |
+| glayout      | Python module for PDK-agnostic layout automation    | System |
+| pygmid       | Python module for systematic circuit sizing         | System |
+| openvaf      | Verilog-A to OSDI compiler                          | System |
 
-The image also contains the `sky130A`, `gf180mcuD`, and `ihp-sg13g2` PDKs. To change between PDKs, use the `set_pdk` command, e.g., `set_pdk sky130A`. The IHP PDK requires the compilation of OSDI files, which is performed when starting a bash terminal. If the compilation fails, simply open another bash terminal.
+### LibreLane Integration
+
+[LibreLane](https://github.com/librelane/librelane) is available directly from the command line and provides:
+- Complete RTL-to-GDSII automated flow
+- Multi-PDK support (IHP-sg13g2, Sky130A, GF180MCU)
+- Design exploration and optimization
+- Integration with industry-standard EDA tools
+
+**Quick start with LibreLane:**
+```bash
+librelane --help           # Show available options
+librelane --smoke-test     # Run a quick verification test
+librelane <config.json>    # Run a design flow
+```
+
+### PDK Management
+
+The image contains the `sky130A`, `gf180mcuD`, and `ihp-sg13g2` PDKs. To change between PDKs, use the `set_pdk` command:
+
+```bash
+set_pdk ihp-sg13g2   # Default PDK
+set_pdk sky130A
+set_pdk gf180mcuD
+```
+
+The IHP PDK requires the compilation of OSDI files, which is performed automatically when starting a bash terminal. If the compilation fails, simply open another bash terminal.
 
 Versions and commit references for all tools and PDKs are specified in the `Dockerfile`.
 
@@ -117,12 +128,22 @@ Versions and commit references for all tools and PDKs are specified in the `Dock
 
 ## Additional Details
 
-- **Documentation:**  
-  Each tool directory contains specific documentation and usage instructions.
+- **LibreLane Documentation:**  
+  Visit the [official LibreLane documentation](https://librelane.readthedocs.io) for detailed guides on running ASIC flows, configuring designs, and using advanced features.
+  
+- **Nix Package Manager:**  
+  The image uses [Nix](https://nixos.org) for reproducible package management. You can install additional tools using `nix profile install nixpkgs#<package>` or create temporary environments with `nix-shell -p <package>`.
+
+- **Tool Documentation:**  
+  Each tool directory contains specific documentation and usage instructions. For LibreLane-specific workflows, refer to the [LibreLane GitHub repository](https://github.com/librelane/librelane).
+
 - **Community & Support:**  
-  Please use [GitHub Issues](https://github.com/unic-cass/uniccass-icdesign-tools/issues) for questions, bug reports, or feature requests.
+  - For general issues: [GitHub Issues](https://github.com/unic-cass/uniccass-icdesign-tools/issues)
+  - For LibreLane-specific questions: [FOSSi Chat Matrix Server](https://matrix.to/#/#openlane:fossi-foundation.org)
+
 - **Contributing:**  
-  We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) (to be created) for guidelines.
+  We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
 - **License:**  
-  This project is licensed under the [MIT License](LICENSE).
+  This project is licensed under the [MIT License](LICENSE). LibreLane is licensed under [Apache License 2.0](https://github.com/librelane/librelane/blob/main/License).
 
