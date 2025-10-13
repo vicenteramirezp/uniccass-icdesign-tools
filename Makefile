@@ -1,9 +1,8 @@
 all: print
 
-PDK=sky130A
+PDK=ihp-sg13g2
 SHARED_DIR=$(abspath ./shared_xserver)
-DOCKER_IMAGE_TAG=isaiassh/unic-cass-tools:1.0.2
-STAGE=unic-cass-tools
+DOCKER_IMAGE_TAG=isaiassh/unic-cass-tools:1.0.3
 
 ifneq (,$(ROOT))
 _DOCKER_ROOT_USER=--user root
@@ -118,11 +117,7 @@ print:
 
 
 build:
-ifeq (,$(STAGE))
-	BUILDKIT_PROGRESS=plain docker build $(_DOCKER_NO_CACHE) -t $(DOCKER_IMAGE_TAG) .
-else
-	BUILDKIT_PROGRESS=plain docker build $(_DOCKER_NO_CACHE) -t $(DOCKER_IMAGE_TAG) --target $(STAGE) .
-endif
+	BUILDKIT_PROGRESS=plain docker build $(_DOCKER_NO_CACHE) -t $(DOCKER_IMAGE_TAG) --target usm-vlsi-tools-nix .
 	docker image ls $(DOCKER_IMAGE_TAG)
 
 
