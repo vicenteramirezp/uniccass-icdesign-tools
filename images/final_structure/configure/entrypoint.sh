@@ -8,5 +8,5 @@ set -e
 if [ "$1" != "" ]; then
     $1
 else
-    /bin/bash
+    exec /bin/bash -i
 fi
