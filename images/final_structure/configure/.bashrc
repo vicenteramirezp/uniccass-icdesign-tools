@@ -35,6 +35,18 @@ function _path_add_tool_python() {
     done
 }
 
+# ================================
+# NIX CONFIGURATION (LOAD FIRST TO AVOID CONFLICTS)
+# ================================
+export USER=designer
+if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+  . ~/.nix-profile/etc/profile.d/nix.sh
+fi
+
+# ================================
+# SYSTEM TOOLS (Always add, except OpenROAD and or-tools from /opt/common)
+# ================================
+
 # _path_add_tool_bin      "covered"
 _path_add_tool_bin      "cvc_rv"
 _path_add_tool_bin      "gaw3-xschem"
@@ -49,7 +61,7 @@ _path_add_tool_bin      "magic"
 _path_add_tool_bin      "netgen"
 _path_add_tool_bin      "ngspice"
 # _path_add_tool_bin      "nvc"
-_path_add_tool_bin      "openroad"
+# _path_add_tool_bin      "openroad"  # Use OpenROAD from Nix instead to avoid ODR violations
 # _path_add_tool_bin      "opensta"
 _path_add_tool_bin	    "openvaf"
 # _path_add_tool_custom   "osic-multitool"
@@ -108,7 +120,7 @@ set_pdk () {
 
 if [ "$PDK" == "" ]; then
     echo "PDK not defined, using default one"
-    set_pdk sky130A
+    set_pdk ihp-sg13g2
 else
     set_pdk $PDK
 fi
@@ -149,8 +161,8 @@ alias grep="grep --color=auto"
 export USER=designer
 
 export CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
-export PATH="$TOOLS/common/bin:$PATH"
-export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
+# export PATH="$TOOLS/common/bin:$PATH"  # Commented: or-tools conflicts with Nix
+# export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"  # Commented: conflicts with Nix
 
 # ORFS Makefile overwrited variables
 export ORFS_DIR=$TOOLS/OpenROAD-flow-scripts
