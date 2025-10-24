@@ -56,7 +56,6 @@ CONTAINER_ID    := $(shell docker container ls -a -q -f "name=$(CONTAINER_NAME)"
 DOCKER_RUN=docker run -it $(_DOCKER_ROOT_USER) \
 	--mount type=bind,source=$(SHARED_DIR),target=/home/designer/shared \
 	-v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-	-v /home/$(USER)/.Xauthority:/root/.Xauthority:rw \
 	-v /home/$(USER)/.Xauthority:/home/designer/.Xauthority:rw \
 	--net=host \
 	-e SHELL=/bin/bash \
