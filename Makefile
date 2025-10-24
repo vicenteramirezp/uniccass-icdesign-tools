@@ -2,7 +2,7 @@ all: print
 
 PDK=ihp-sg13g2
 SHARED_DIR=$(abspath ./shared_xserver)
-DOCKER_IMAGE_TAG=isaiassh/unic-cass-tools:1.0.3
+DOCKER_IMAGE_TAG=isaiassh/unic-cass-tools:1.0.4
 
 ifneq (,$(ROOT))
 _DOCKER_ROOT_USER=--user root

@@ -50,13 +50,26 @@ We welcome contributions from the global IC design community!
 ### Windows (with WSL 2)
 
 1. **Install [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/install) and Ubuntu from the Microsoft Store.**
-2. **Clone the repository inside your WSL environment:**
+
+2. **Install required tools:**
+   
+   **Git Installation:**
+   ```powershell
+   winget install --id Git.Git -e --source winget
+   ```
+   
+   **Make Installation:**
+   ```powershell
+   winget install ezwinports.make
+   ```
+
+3. **Clone the repository inside your WSL environment:**
    ```bash
    git clone https://github.com/unic-cass/uniccass-icdesign-tools.git
    cd uniccass-icdesign-tools
    ```
 
-3. **Build and run:**
+4. **Build and run:**
    ```bash
    make start
    ```
@@ -67,10 +80,40 @@ We welcome contributions from the global IC design community!
      start.bat
      ```
 
-4. **For GUI tools, use [VcXsrv](https://sourceforge.net/projects/vcxsrv/) or similar X server.**
+5. **XServer Installation for GUI tools:**
+   
+   Programs that use graphical user interfaces (xschem, magic, ngspice plots, klayout) require an X Server running on the host machine. Windows requires an external server.
+   
+   **Install VcXsrv:**
+   - Download and install the [21.1.10 release](https://github.com/marchaesen/vcxsrv/releases/download/21.1.10/vcxsrv-64.21.1.10.0.installer.exe) from the [VcXsrv releases page](https://github.com/marchaesen/vcxsrv/releases/tag/21.1.10)
+   - **Important:** Add the installation directory to your system `Path`:
+     1. Open Control Panel and search for environment variables
+     2. Select the option that modifies current account
+     3. In **User Variables**, add the VcXsrv directory to the `Path` user variable
+     4. Reopen each terminal to reload the path
+   
+   **Note:** We recommend version 21.1.10 as newer versions may have security concerns.
 
+6. **Note:** Some tools may require additional configuration or may not be fully supported.
 
-5. **Note:** Some tools may require additional configuration or may not be fully supported.
+### macOS (experimental)
+
+1. **Install [XQuartz](https://www.xquartz.org/) for GUI tools:**
+   
+   Programs that use graphical user interfaces (xschem, magic, ngspice plots, klayout) require an X Server running on the host machine. macOS requires an external server.
+
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/unic-cass/uniccass-icdesign-tools.git
+   cd uniccass-icdesign-tools
+   ```
+
+3. **Build and run the Docker environment:**
+   ```bash
+   make start
+   ```
+
+4. **Note:** macOS support is experimental. Community support and contributions are encouraged.
 
 ---
 
@@ -140,9 +183,6 @@ Versions and commit references for all tools and PDKs are specified in the `Dock
 - **Community & Support:**  
   - For general issues: [GitHub Issues](https://github.com/unic-cass/uniccass-icdesign-tools/issues)
   - For LibreLane-specific questions: [FOSSi Chat Matrix Server](https://matrix.to/#/#openlane:fossi-foundation.org)
-
-- **Contributing:**  
-  We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - **License:**  
   This project is licensed under the [MIT License](LICENSE). LibreLane is licensed under [Apache License 2.0](https://github.com/librelane/librelane/blob/main/License).
