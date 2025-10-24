@@ -91,9 +91,9 @@ ARG GTKWAVE_REPO_URL="https://github.com/gtkwave/gtkwave.git"
 ARG GTKWAVE_REPO_COMMIT="0a800de96255f7fb11beadb6729fdf670da76ecb"
 ARG GTKWAVE_NAME="gtkwave"
 
-# Jul 27, 2024 (master)
+# Oct 18, 2025 (master)
 ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts"
-ARG ORFS_REPO_COMMIT="a0615e8f0e00649cf642861e4e1e1951fa33df02"
+ARG ORFS_REPO_COMMIT="ed05b57b75b3ae3f2b1f11fd92348b0a38bcd17e"
 ARG ORFS_NAME="OpenROAD-flow-scripts"
 
 #######################################################################
@@ -498,6 +498,14 @@ RUN cd /opt/librelane && \
 # Verify LibreLane installation
 RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
     librelane --version
+
+# Install OpenROAD explicitly in user profile for direct access
+RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
+    nix profile install nixpkgs#openroad --extra-experimental-features "nix-command flakes"
+
+# Verify OpenROAD is accessible directly
+RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
+    openroad -version
 
 # Configure /etc/bash.bashrc for interactive shells and replace .bashrc with Nix-compatible version
 USER root
