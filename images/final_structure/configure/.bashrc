@@ -162,11 +162,10 @@ export USER=designer
 
 export CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
 
-# OpenROAD configuration: Add to PATH but disable LD_LIBRARY_PATH to prevent ODR violation
+# OpenROAD configuration: Add to PATH and LD_LIBRARY_PATH for OpenROAD libraries
 _path_add_tool_bin "openroad"
 export PATH="$TOOLS/common/bin:$PATH"
-# LD_LIBRARY_PATH disabled to prevent ODR violation between /opt/common libraries and LibreLane's internal OpenROAD
-# export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
 
 # ORFS Makefile overwrited variables
 export ORFS_DIR=$TOOLS/OpenROAD-flow-scripts
