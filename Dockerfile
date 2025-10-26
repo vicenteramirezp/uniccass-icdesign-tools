@@ -388,12 +388,8 @@ ARG ORFS_REPO_URL \
     ORFS_REPO_COMMIT \
     ORFS_NAME
 
-RUN mkdir -p $TOOLS && \
-    cd $TOOLS && \
-    git clone $ORFS_REPO_URL $ORFS_NAME && \
-    cd $ORFS_NAME && \
-    git checkout $ORFS_REPO_COMMIT && \
-    chown -R 1000:1000 $TOOLS/$ORFS_NAME
+RUN --mount=type=bind,source=images/orfs,target=/images/orfs \
+    bash /images/orfs/install.sh
 
 
 #######################################################################
