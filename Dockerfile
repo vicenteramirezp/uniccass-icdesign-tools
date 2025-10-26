@@ -395,7 +395,7 @@ RUN --mount=type=bind,source=images/orfs,target=/images/orfs \
 #######################################################################
 # Final output container
 #######################################################################
-FROM base AS usm-vlsi-tools
+FROM base AS unic-cass-tools
 ARG NGSPICE_REPO_COMMIT \
     OPEN_PDKS_REPO_COMMIT \
     MAGIC_REPO_COMMIT \
@@ -445,6 +445,11 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
     cd /images/final_structure/configure/ \
     && bash modify_user.sh
 
+# Create /run/user/1000/ directory for X11 and systemd runtime files
+RUN mkdir -p /run/user/1000 && \
+    chmod 700 /run/user/1000 && \
+    chown designer:designer /run/user/1000
+
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     bash -c 'cat images/final_structure/configure/.bashrc' >> /home/designer/.bashrc && \
     bash -c 'cat images/final_structure/configure/.bashrc' >> /root/.bashrc
@@ -471,7 +476,7 @@ ENV NGSPICE_REPO_COMMIT=${NGSPICE_REPO_COMMIT} \
 #######################################################################
 # Add Nix package manager and LibreLane
 #######################################################################
-FROM usm-vlsi-tools AS usm-vlsi-tools-nix
+FROM unic-cass-tools AS unic-cass-tools-nix
 USER root
 
 # Install sudo for Nix installer
@@ -527,6 +532,6 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 
 USER designer
 
-FROM usm-vlsi-tools-nix AS usm-vlsi-tools-temp
+FROM unic-cass-tools-nix AS unic-cass-tools-temp
 USER root
 USER designer
