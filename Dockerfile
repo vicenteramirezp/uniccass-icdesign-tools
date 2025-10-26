@@ -91,10 +91,10 @@ ARG GTKWAVE_REPO_URL="https://github.com/gtkwave/gtkwave.git"
 ARG GTKWAVE_REPO_COMMIT="0a800de96255f7fb11beadb6729fdf670da76ecb"
 ARG GTKWAVE_NAME="gtkwave"
 
-# Oct 18, 2025 (master)
-ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts"
-ARG ORFS_REPO_COMMIT="ed05b57b75b3ae3f2b1f11fd92348b0a38bcd17e"
-ARG ORFS_NAME="OpenROAD-flow-scripts"
+# Oct 25, 2025 (master)
+ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
+ARG ORFS_REPO_COMMIT="ee9759486a31328ff8a8213131c3cd5f5fc7f39a"
+ARG ORFS_NAME="openroad"
 
 #######################################################################
 # Basic configuration for base and builder
@@ -381,7 +381,7 @@ RUN --mount=type=bind,source=images/iverilog,target=/images/iverilog \
 
 
 #######################################################################
-# Compile OpenROAD Flow Scripts
+# Compile OpenROAD
 #######################################################################
 FROM builder AS orfs
 
@@ -416,7 +416,7 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 
 COPY --from=open_pdks  ${PDK_ROOT}                  ${PDK_ROOT}
 COPY --from=ihp_pdk    ${PDK_ROOT}/${IHP_PDK_NAME}  ${PDK_ROOT}/${IHP_PDK_NAME}
-# COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common  # Skipped: or-tools conflicts with Nix
+COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common
 COPY --from=ihp_pdk    ${TOOLS}/openvaf             ${TOOLS}/openvaf
 COPY --from=ngspice    ${TOOLS}/ngspice             ${TOOLS}/ngspice
 COPY --from=xschem     ${TOOLS}/xschem              ${TOOLS}/xschem
@@ -427,8 +427,8 @@ COPY --from=cvc_rv     ${TOOLS}/cvc_rv              ${TOOLS}/cvc_rv
 COPY --from=verilator  ${TOOLS}/verilator           ${TOOLS}/verilator
 COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
-# COPY --from=openroad   ${TOOLS}/openroad            ${TOOLS}/openroad  # Skipped: Use OpenROAD from Nix instead
-COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts   ${TOOLS}/OpenROAD-flow-scripts
+# Copy OpenROAD but exclude from PATH during LibreLane execution to avoid ODR violations
+COPY --from=orfs       ${TOOLS}/openroad            ${TOOLS}/openroad
 
 
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
@@ -498,14 +498,6 @@ RUN cd /opt/librelane && \
 # Verify LibreLane installation
 RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
     librelane --version
-
-# Install OpenROAD explicitly in user profile for direct access
-RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
-    nix profile install nixpkgs#openroad --extra-experimental-features "nix-command flakes"
-
-# Verify OpenROAD is accessible directly
-RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
-    openroad -version
 
 # Configure /etc/bash.bashrc for interactive shells and replace .bashrc with Nix-compatible version
 USER root
