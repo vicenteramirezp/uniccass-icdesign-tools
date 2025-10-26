@@ -409,6 +409,9 @@ ARG NGSPICE_REPO_COMMIT \
 RUN --mount=type=bind,source=images/final_structure/install,target=/images/final_structure/install \
     bash /images/final_structure/install/install_klayout.sh
 
+# Install libyaml-cpp for OpenROAD
+RUN apt-get update && apt-get install -y libyaml-cpp-dev && rm -rf /var/lib/apt/lists/*
+
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     cd /images/final_structure/configure/ \
     && bash tool_configuration.sh
@@ -418,7 +421,7 @@ COPY --from=ihp_pdk    ${PDK_ROOT}/${IHP_PDK_NAME}  ${PDK_ROOT}/${IHP_PDK_NAME}
 COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common
 COPY --from=ihp_pdk    ${TOOLS}/openvaf             ${TOOLS}/openvaf
 COPY --from=ngspice    ${TOOLS}/ngspice             ${TOOLS}/ngspice
-COPY --from=xschem     ${TOOLS}/xschem              ${TOOLS}/xschem
+COPY --from=xschem     ${TOOLS}/xschem               ${TOOLS}/xschem
 COPY --from=magic      ${TOOLS}/magic               ${TOOLS}/magic
 COPY --from=netgen     ${TOOLS}/netgen              ${TOOLS}/netgen
 COPY --from=gaw        ${TOOLS}/gaw3-xschem         ${TOOLS}/gaw3-xschem
@@ -428,6 +431,9 @@ COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
 COPY --from=openroad_core ${TOOLS}/openroad         ${TOOLS}/openroad
 COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts ${TOOLS}/OpenROAD-flow-scripts
+
+# Ensure OpenROAD and OpenVAF are in PATH for all users
+ENV PATH="$TOOLS/openroad/bin:$TOOLS/openvaf/bin:$PATH"
 
 # Clone openvaf files for IHP PDK
 RUN cd /opt/pdks && \
@@ -519,9 +525,9 @@ RUN cd /opt/librelane && \
 RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
     librelane --version
 
-# Update yosys using Nix
-RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
-    nix profile install nixpkgs#yosys --extra-experimental-features "nix-command flakes"
+# Note: yosys is already installed via the yosys stage, skip Nix installation to avoid rate limits
+# RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
+#     nix profile install nixpkgs#yosys --extra-experimental-features "nix-command flakes"
 
 # Configure /etc/bash.bashrc for interactive shells and replace .bashrc with Nix-compatible version
 USER root

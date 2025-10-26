@@ -39,12 +39,16 @@ function _path_add_tool_python() {
 # NIX CONFIGURATION (LOAD FIRST TO AVOID CONFLICTS)
 # ================================
 export USER=designer
+NIX_ACTIVE=false
 if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
   . ~/.nix-profile/etc/profile.d/nix.sh
+  # Unset LD_LIBRARY_PATH to prevent ODR violations with LibreLane's Nix-provided OpenROAD
+  unset LD_LIBRARY_PATH
+  NIX_ACTIVE=true
 fi
 
 # ================================
-# SYSTEM TOOLS (Always add, except OpenROAD and or-tools from /opt/common)
+# SYSTEM TOOLS (Always add system tools, but skip /opt/common when Nix is active)
 # ================================
 
 # _path_add_tool_bin      "covered"
@@ -61,9 +65,7 @@ _path_add_tool_bin      "magic"
 _path_add_tool_bin      "netgen"
 _path_add_tool_bin      "ngspice"
 # _path_add_tool_bin      "nvc"
-# _path_add_tool_bin      "openroad"  # Added conditionally above to avoid ODR violation with LibreLane's OpenROAD from Nix
-# _path_add_tool_bin      "opensta"
-_path_add_tool_bin	    "openvaf"
+_path_add_tool_bin      "openvaf"
 # _path_add_tool_custom   "osic-multitool"
 # _path_add_tool_bin      "padring"
 # _path_add_tool_bin      "pyopus"
@@ -76,6 +78,13 @@ _path_add_tool_bin      "xschem"
 # _path_add_tool_bin      "xyce/Parallel"
 _path_add_tool_bin      "yosys"
 _path_add_tool_custom   "yosys/bin"
+
+# Add /opt/common only when Nix is NOT active to prevent ODR violations
+if [ "$NIX_ACTIVE" = false ]; then
+  export CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
+  export PATH="$TOOLS/common/bin:$PATH"
+  export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
+fi
 
 
 # ------------------
@@ -160,16 +169,12 @@ alias grep="grep --color=auto"
 
 export USER=designer
 
-export CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
-
-# OpenROAD configuration: Add to PATH and LD_LIBRARY_PATH for OpenROAD libraries
-_path_add_tool_bin "openroad"
-export PATH="$TOOLS/common/bin:$PATH"
-export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
-
 # ORFS Makefile overwrited variables
 export ORFS_DIR=$TOOLS/OpenROAD-flow-scripts
 export OPENROAD_EXE=openroad
 export YOSYS_EXE=yosys
 export YOSYS_CMD=yosys
 export OPENSTA_EXE=sta
+
+# OpenROAD: Always add to PATH (will be overridden by Nix when LibreLane runs)
+_path_add_tool_bin "openroad"
