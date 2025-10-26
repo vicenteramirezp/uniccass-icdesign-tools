@@ -45,11 +45,6 @@ ARG XSCHEM_REPO_URL="https://github.com/StefanSchippers/xschem.git"
 ARG XSCHEM_REPO_COMMIT="313acc8e2974c38be80549203a555bed0fd4e30f"
 ARG XSCHEM_NAME="xschem"
 
-# Apr 21, 2024 ()
-ARG OPENROAD_APP_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
-ARG OPENROAD_APP_REPO_COMMIT="d423155d69de7f683a23f6916ead418a615ad4ad"
-ARG OPENROAD_APP_NAME="openroad"
-
 # Mar 10, 2025 (1.5.293)
 ARG NETGEN_REPO_URL="https://github.com/rtimothyedwards/netgen"
 ARG NETGEN_REPO_COMMIT="1.5.293"
@@ -90,6 +85,11 @@ ARG IVERILOG_NAME="iverilog"
 ARG GTKWAVE_REPO_URL="https://github.com/gtkwave/gtkwave.git"
 ARG GTKWAVE_REPO_COMMIT="0a800de96255f7fb11beadb6729fdf670da76ecb"
 ARG GTKWAVE_NAME="gtkwave"
+
+# Oct 26, 2025 - OpenROAD core application
+ARG OPENROAD_APP_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
+ARG OPENROAD_APP_REPO_COMMIT="d423155d69de7f683a23f6916ead418a615ad4ad"
+ARG OPENROAD_APP_NAME="openroad"
 
 # Oct 25, 2025 (master) - OpenROAD-flow-scripts repository
 ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts"
