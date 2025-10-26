@@ -457,7 +457,7 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 # Run xschem install.py script as designer user
 USER designer
 RUN cd /opt/pdks/ihp-sg13g2/libs.tech/xschem && \
-    PATH="$TOOLS/openvaf/bin:$PATH" python install.py
+    PATH="$TOOLS/openvaf/bin:$PATH" USER=designer python install.py
 
 COPY --chmod=755 images/final_structure/configure/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
