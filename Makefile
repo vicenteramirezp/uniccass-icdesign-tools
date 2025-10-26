@@ -17,7 +17,7 @@ endif
 ifeq (Windows_NT,$(OS))
 
 SHARED_DIR_HASH := $(shell echo | set /p="$(SHARED_DIR)" > %TMP%/hash.txt | certutil -hashfile %TMP%/hash.txt SHA256 | findstr /v "hash")
-CONTAINER_NAME  := usm-vlsi-tools-$(SHARED_DIR_HASH)
+CONTAINER_NAME  := unic-cass-tools-$(SHARED_DIR_HASH)
 CONTAINER_ID    := $(shell docker container ls -a -q -f "name=$(CONTAINER_NAME)")
 
 USER_ID=1000
@@ -48,7 +48,7 @@ USER_GROUP=$(shell id -g)
 ifeq (Linux,$(UNAME_S))
 
 SHARED_DIR_HASH := $(shell echo -n $(SHARED_DIR) | md5sum | awk '{print $$1}')
-CONTAINER_NAME  := usm-vlsi-tools-$(SHARED_DIR_HASH)
+CONTAINER_NAME  := unic-cass-tools-$(SHARED_DIR_HASH)
 CONTAINER_ID    := $(shell docker container ls -a -q -f "name=$(CONTAINER_NAME)")
 
 # Since it uses local xserver, --net=host is required and DISPLAY should be equal to host
@@ -116,7 +116,7 @@ print:
 
 
 build:
-	BUILDKIT_PROGRESS=plain docker build $(_DOCKER_NO_CACHE) -t $(DOCKER_IMAGE_TAG) --target usm-vlsi-tools-nix .
+	BUILDKIT_PROGRESS=plain docker build $(_DOCKER_NO_CACHE) -t $(DOCKER_IMAGE_TAG) --target unic-cass-tools-nix .
 	docker image ls $(DOCKER_IMAGE_TAG)
 
 

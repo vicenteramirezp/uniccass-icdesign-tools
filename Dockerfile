@@ -45,11 +45,6 @@ ARG XSCHEM_REPO_URL="https://github.com/StefanSchippers/xschem.git"
 ARG XSCHEM_REPO_COMMIT="313acc8e2974c38be80549203a555bed0fd4e30f"
 ARG XSCHEM_NAME="xschem"
 
-# Apr 21, 2024 ()
-ARG OPENROAD_APP_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
-ARG OPENROAD_APP_REPO_COMMIT="d423155d69de7f683a23f6916ead418a615ad4ad"
-ARG OPENROAD_APP_NAME="openroad"
-
 # Mar 10, 2025 (1.5.293)
 ARG NETGEN_REPO_URL="https://github.com/rtimothyedwards/netgen"
 ARG NETGEN_REPO_COMMIT="1.5.293"
@@ -91,10 +86,15 @@ ARG GTKWAVE_REPO_URL="https://github.com/gtkwave/gtkwave.git"
 ARG GTKWAVE_REPO_COMMIT="0a800de96255f7fb11beadb6729fdf670da76ecb"
 ARG GTKWAVE_NAME="gtkwave"
 
-# Oct 25, 2025 (master)
-ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
-ARG ORFS_REPO_COMMIT="ee9759486a31328ff8a8213131c3cd5f5fc7f39a"
-ARG ORFS_NAME="openroad"
+# Oct 25, 2025 - OpenROAD
+ARG OPENROAD_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
+ARG OPENROAD_REPO_COMMIT="ee9759486a31328ff8a8213131c3cd5f5fc7f39a"
+ARG OPENROAD_NAME="openroad"
+
+# Oct 25, 2025 (master) - OpenROAD-flow-scripts repository
+ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts"
+ARG ORFS_REPO_COMMIT="40674dd5cf48db6dc9028d6ab5a98f107208f5bb"
+ARG ORFS_NAME="OpenROAD-flow-scripts"
 
 #######################################################################
 # Basic configuration for base and builder
@@ -329,19 +329,6 @@ RUN --mount=type=bind,source=images/gaw,target=/images/gaw \
 
 
 #######################################################################
-# Compile openroad
-#######################################################################
-FROM builder AS openroad
-
-ARG OPENROAD_APP_REPO_URL \
-    OPENROAD_APP_REPO_COMMIT \
-    OPENROAD_APP_NAME
-
-RUN --mount=type=bind,source=images/openroad,target=/images/openroad \
-    bash /images/openroad/install.sh
-
-
-#######################################################################
 # Compile cvc_rv
 #######################################################################
 FROM builder AS cvc_rv
@@ -381,9 +368,21 @@ RUN --mount=type=bind,source=images/iverilog,target=/images/iverilog \
 
 
 #######################################################################
-# Compile OpenROAD
+# Compile OpenROAD (core application)
 #######################################################################
-FROM builder AS orfs
+FROM builder AS openroad_core
+
+ARG OPENROAD_REPO_URL \
+    OPENROAD_REPO_COMMIT \
+    OPENROAD_NAME
+
+RUN --mount=type=bind,source=images/openroad,target=/images/openroad \
+    bash /images/openroad/install.sh
+
+#######################################################################
+# Clone OpenROAD-flow-scripts (ORFS)
+#######################################################################
+FROM base AS orfs
 
 ARG ORFS_REPO_URL \
     ORFS_REPO_COMMIT \
@@ -396,7 +395,7 @@ RUN --mount=type=bind,source=images/orfs,target=/images/orfs \
 #######################################################################
 # Final output container
 #######################################################################
-FROM base AS usm-vlsi-tools
+FROM base AS unic-cass-tools
 ARG NGSPICE_REPO_COMMIT \
     OPEN_PDKS_REPO_COMMIT \
     MAGIC_REPO_COMMIT \
@@ -410,6 +409,9 @@ ARG NGSPICE_REPO_COMMIT \
 RUN --mount=type=bind,source=images/final_structure/install,target=/images/final_structure/install \
     bash /images/final_structure/install/install_klayout.sh
 
+# Install libyaml-cpp for OpenROAD
+RUN apt-get update && apt-get install -y libyaml-cpp-dev && rm -rf /var/lib/apt/lists/*
+
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     cd /images/final_structure/configure/ \
     && bash tool_configuration.sh
@@ -419,7 +421,7 @@ COPY --from=ihp_pdk    ${PDK_ROOT}/${IHP_PDK_NAME}  ${PDK_ROOT}/${IHP_PDK_NAME}
 COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common
 COPY --from=ihp_pdk    ${TOOLS}/openvaf             ${TOOLS}/openvaf
 COPY --from=ngspice    ${TOOLS}/ngspice             ${TOOLS}/ngspice
-COPY --from=xschem     ${TOOLS}/xschem              ${TOOLS}/xschem
+COPY --from=xschem     ${TOOLS}/xschem               ${TOOLS}/xschem
 COPY --from=magic      ${TOOLS}/magic               ${TOOLS}/magic
 COPY --from=netgen     ${TOOLS}/netgen              ${TOOLS}/netgen
 COPY --from=gaw        ${TOOLS}/gaw3-xschem         ${TOOLS}/gaw3-xschem
@@ -427,17 +429,41 @@ COPY --from=cvc_rv     ${TOOLS}/cvc_rv              ${TOOLS}/cvc_rv
 COPY --from=verilator  ${TOOLS}/verilator           ${TOOLS}/verilator
 COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
-# Copy OpenROAD but exclude from PATH during LibreLane execution to avoid ODR violations
-COPY --from=orfs       ${TOOLS}/openroad            ${TOOLS}/openroad
+COPY --from=openroad_core ${TOOLS}/openroad         ${TOOLS}/openroad
+COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts ${TOOLS}/OpenROAD-flow-scripts
 
+# Ensure OpenROAD and OpenVAF are in PATH for all users
+ENV PATH="$TOOLS/openroad/bin:$TOOLS/openvaf/bin:$PATH"
+
+# Clone openvaf files for IHP PDK
+RUN cd /opt/pdks && \
+    git clone --depth 1 --filter=blob:none --no-checkout https://github.com/IHP-GmbH/IHP-Open-PDK.git tmp && \
+    cd tmp && \
+    git checkout 4d6ba9b695afdf84d57e4b3bdd2234f96e8910bd -- ihp-sg13g2/libs.tech/ngspice/openvaf && \
+    mv ihp-sg13g2/libs.tech/ngspice/openvaf /opt/pdks/ihp-sg13g2/libs.tech/ngspice/ && \
+    cd .. && \
+    rm -rf tmp
 
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     cd /images/final_structure/configure/ \
     && bash modify_user.sh
 
+# Create /run/user/1000/ directory for X11 and systemd runtime files
+RUN mkdir -p /run/user/1000 && \
+    chmod 700 /run/user/1000 && \
+    chown designer:designer /run/user/1000
+
+# Fix IHP permissions (after designer user is created)
+RUN chown -R designer:designer /opt/pdks/ihp-sg13g2/
+
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     bash -c 'cat images/final_structure/configure/.bashrc' >> /home/designer/.bashrc && \
     bash -c 'cat images/final_structure/configure/.bashrc' >> /root/.bashrc
+
+# Run xschem install.py script as designer user
+USER designer
+RUN cd /opt/pdks/ihp-sg13g2/libs.tech/xschem && \
+    PATH="$TOOLS/openvaf/bin:$PATH" USER=designer python install.py
 
 COPY --chmod=755 images/final_structure/configure/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
@@ -456,7 +482,7 @@ ENV NGSPICE_REPO_COMMIT=${NGSPICE_REPO_COMMIT} \
 #######################################################################
 # Add Nix package manager and LibreLane
 #######################################################################
-FROM usm-vlsi-tools AS usm-vlsi-tools-nix
+FROM unic-cass-tools AS unic-cass-tools-nix
 USER root
 
 # Install sudo for Nix installer
@@ -499,6 +525,10 @@ RUN cd /opt/librelane && \
 RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
     librelane --version
 
+# Note: yosys is already installed via the yosys stage, skip Nix installation to avoid rate limits
+# RUN source ~/.nix-profile/etc/profile.d/nix.sh && \
+#     nix profile install nixpkgs#yosys --extra-experimental-features "nix-command flakes"
+
 # Configure /etc/bash.bashrc for interactive shells and replace .bashrc with Nix-compatible version
 USER root
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
@@ -508,7 +538,6 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 
 USER designer
 
-FROM usm-vlsi-tools-nix AS usm-vlsi-tools-temp
+FROM unic-cass-tools-nix AS unic-cass-tools-temp
 USER root
-
 USER designer
