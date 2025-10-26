@@ -86,10 +86,10 @@ ARG GTKWAVE_REPO_URL="https://github.com/gtkwave/gtkwave.git"
 ARG GTKWAVE_REPO_COMMIT="0a800de96255f7fb11beadb6729fdf670da76ecb"
 ARG GTKWAVE_NAME="gtkwave"
 
-# Oct 26, 2025 - OpenROAD core application
-ARG OPENROAD_APP_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
-ARG OPENROAD_APP_REPO_COMMIT="d423155d69de7f683a23f6916ead418a615ad4ad"
-ARG OPENROAD_APP_NAME="openroad"
+# Oct 25, 2025 - OpenROAD
+ARG OPENROAD_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD.git"
+ARG OPENROAD_REPO_COMMIT="ee9759486a31328ff8a8213131c3cd5f5fc7f39a"
+ARG OPENROAD_NAME="openroad"
 
 # Oct 25, 2025 (master) - OpenROAD-flow-scripts repository
 ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts"
@@ -372,9 +372,9 @@ RUN --mount=type=bind,source=images/iverilog,target=/images/iverilog \
 #######################################################################
 FROM builder AS openroad_core
 
-ARG OPENROAD_APP_REPO_URL \
-    OPENROAD_APP_REPO_COMMIT \
-    OPENROAD_APP_NAME
+ARG OPENROAD_REPO_URL \
+    OPENROAD_REPO_COMMIT \
+    OPENROAD_NAME
 
 RUN --mount=type=bind,source=images/openroad,target=/images/openroad \
     bash /images/openroad/install.sh

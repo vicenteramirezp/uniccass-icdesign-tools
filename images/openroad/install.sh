@@ -3,11 +3,11 @@
 set -ex
 cd /tmp
 
-REPO_COMMIT_SHORT=$(echo "$OPENROAD_APP_REPO_COMMIT" | cut -c 1-7)
+REPO_COMMIT_SHORT=$(echo "$OPENROAD_REPO_COMMIT" | cut -c 1-7)
 
-git clone --filter=blob:none "${OPENROAD_APP_REPO_URL}" "${OPENROAD_APP_NAME}"
-cd "${OPENROAD_APP_NAME}"
-git checkout "${OPENROAD_APP_REPO_COMMIT}"
+git clone --filter=blob:none "${OPENROAD_REPO_URL}" "${OPENROAD_NAME}"
+cd "${OPENROAD_NAME}"
+git checkout "${OPENROAD_REPO_COMMIT}"
 git submodule update --init --recursive
 
 # Install dependencies using OpenROAD's dependency installer
@@ -82,7 +82,7 @@ apt-get update && apt-get install -y libspdlog-dev 2>/dev/null || echo "spdlog-d
 mkdir -p build && cd build
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    "-DCMAKE_INSTALL_PREFIX=${TOOLS}/${OPENROAD_APP_NAME}/${REPO_COMMIT_SHORT}" \
+    "-DCMAKE_INSTALL_PREFIX=${TOOLS}/${OPENROAD_NAME}/${REPO_COMMIT_SHORT}" \
     -DCMAKE_PREFIX_PATH="/opt/common" \
     -DUSE_SYSTEM_BOOST=OFF \
     -DUSE_SYSTEM_EIGEN3=OFF \
@@ -103,4 +103,4 @@ make -j"$(nproc)"
 make install
 
 # Create symlinks for easy access
-ln -sf ${TOOLS}/${OPENROAD_APP_NAME}/${REPO_COMMIT_SHORT}/bin/openroad ${TOOLS}/${OPENROAD_APP_NAME}/${REPO_COMMIT_SHORT}/bin/or
+ln -sf ${TOOLS}/${OPENROAD_NAME}/${REPO_COMMIT_SHORT}/bin/openroad ${TOOLS}/${OPENROAD_NAME}/${REPO_COMMIT_SHORT}/bin/or
