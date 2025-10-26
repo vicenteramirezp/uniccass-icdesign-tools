@@ -61,7 +61,7 @@ _path_add_tool_bin      "magic"
 _path_add_tool_bin      "netgen"
 _path_add_tool_bin      "ngspice"
 # _path_add_tool_bin      "nvc"
-# _path_add_tool_bin      "openroad"  # Use OpenROAD from Nix instead to avoid ODR violations
+# _path_add_tool_bin      "openroad"  # Added conditionally above to avoid ODR violation with LibreLane's OpenROAD from Nix
 # _path_add_tool_bin      "opensta"
 _path_add_tool_bin	    "openvaf"
 # _path_add_tool_custom   "osic-multitool"
@@ -161,8 +161,11 @@ alias grep="grep --color=auto"
 export USER=designer
 
 export CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
-# export PATH="$TOOLS/common/bin:$PATH"  # Commented: or-tools conflicts with Nix
-# export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"  # Commented: conflicts with Nix
+
+# OpenROAD configuration: Add to PATH but disable LD_LIBRARY_PATH to prevent ODR violation
+export PATH="$TOOLS/openroad/bin:$TOOLS/common/bin:$PATH"
+# LD_LIBRARY_PATH disabled to prevent ODR violation between /opt/common libraries and LibreLane's internal OpenROAD
+# export LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
 
 # ORFS Makefile overwrited variables
 export ORFS_DIR=$TOOLS/OpenROAD-flow-scripts
