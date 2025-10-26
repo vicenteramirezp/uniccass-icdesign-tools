@@ -438,9 +438,6 @@ RUN cd /opt/pdks && \
     cd .. && \
     rm -rf tmp
 
-# Fix IHP permissions
-RUN chown -R designer:designer /opt/pdks/ihp-sg13g2/
-
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     cd /images/final_structure/configure/ \
     && bash modify_user.sh
@@ -449,6 +446,9 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 RUN mkdir -p /run/user/1000 && \
     chmod 700 /run/user/1000 && \
     chown designer:designer /run/user/1000
+
+# Fix IHP permissions (after designer user is created)
+RUN chown -R designer:designer /opt/pdks/ihp-sg13g2/
 
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     bash -c 'cat images/final_structure/configure/.bashrc' >> /home/designer/.bashrc && \
