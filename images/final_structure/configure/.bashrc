@@ -171,8 +171,8 @@ export USER=designer
 
 # ORFS Makefile overwrited variables
 export ORFS_DIR=$TOOLS/OpenROAD-flow-scripts
-export OPENROAD_EXE=openroad
-export YOSYS_EXE=yosys
+export OPENROAD_EXE=$(command -v openroad)
+export YOSYS_EXE=$(command -v yosys)
 export YOSYS_CMD=yosys
 export OPENSTA_EXE=sta
 
