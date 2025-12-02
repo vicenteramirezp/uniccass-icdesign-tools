@@ -16,3 +16,8 @@ cmake --build build --target install
 
 
 CMAKE_PACKAGE_ROOT_ARGS+=" -D GTest_ROOT=$(realpath $gtestPrefix) "
+
+# Cleanup: Remove source code, build directory, and archive
+cd /tmp
+rm -rf googletest-${gtestVersion}
+rm -f v${gtestVersion}.zip

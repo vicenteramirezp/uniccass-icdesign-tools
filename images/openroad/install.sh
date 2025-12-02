@@ -99,8 +99,18 @@ cmake .. \
     -DFMT_DOC=OFF \
     -DFMT_TEST=OFF \
     -DFORCE_SPDLOG_BUILD=ON
-make -j"$(nproc)"
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building OpenROAD with $BUILD_JOBS parallel jobs (limited for memory)"
+make -j"${BUILD_JOBS}"
 make install
+# Clean intermediate object files immediately after install to free memory
+find build -name "*.o" -delete 2>/dev/null || true
 
 # Create symlinks for easy access
 ln -sf ${TOOLS}/${OPENROAD_NAME}/${REPO_COMMIT_SHORT}/bin/openroad ${TOOLS}/${OPENROAD_NAME}/${REPO_COMMIT_SHORT}/bin/or
+
+# Cleanup: Remove source code, build directory, and apt cache
+cd /tmp
+rm -rf "${OPENROAD_NAME}"
+rm -rf /var/lib/apt/lists/*

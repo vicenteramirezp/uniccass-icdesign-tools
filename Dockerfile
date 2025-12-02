@@ -23,9 +23,9 @@ ARG MAGIC_REPO_URL="https://github.com/RTimothyEdwards/magic.git"
 ARG MAGIC_REPO_COMMIT="8.3.522"
 ARG MAGIC_NAME="magic"
 
-# Sept 3, 2025 (dev)
+# Nov 25, 2025 (dev)
 ARG IHP_PDK_REPO_URL="https://github.com/IHP-GmbH/IHP-Open-PDK.git"
-ARG IHP_PDK_REPO_COMMIT="38ed2cd8da877dbba60d480d3d8bbe1a0ff3c5d4"
+ARG IHP_PDK_REPO_COMMIT="34c00bdd15efd3406ab028896d2182236aad3aa7"
 ARG IHP_PDK_NAME="ihp-sg13g2"
 
 # Oct 30, 2023 (master)
@@ -102,12 +102,15 @@ ARG ORFS_NAME="OpenROAD-flow-scripts"
 
 FROM ${BASE_IMAGE} AS common
 ARG CONTAINER_TAG=unknown
+# Limit build parallelism to reduce RAM usage (default: 2 for memory-constrained builds)
+ARG MAX_BUILD_JOBS=2
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Europe/Vienna \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     TOOLS=/opt \
-    PDK_ROOT=/opt/pdks
+    PDK_ROOT=/opt/pdks \
+    MAX_BUILD_JOBS=${MAX_BUILD_JOBS}
 
 USER root
 
@@ -131,6 +134,8 @@ FROM common AS builder
 RUN --mount=type=bind,source=images/builder,target=/images/builder \
     bash /images/builder/exhaustive-install.sh
 
+# Initialize CMAKE_PACKAGE_ROOT_ARGS variable
+ENV CMAKE_PACKAGE_ROOT_ARGS=""
 ENV CMAKE_PACKAGE_ROOT_ARGS="$CMAKE_PACKAGE_ROOT_ARGS -D SWIG_ROOT=$TOOLS/common -D Eigen3_ROOT=$TOOLS/common -D GTest_ROOT=$TOOLS/common -D LEMON_ROOT=$TOOLS/common -D spdlog_ROOT=$TOOLS/common -D ortools_ROOT=$TOOLS/common"
 
 RUN --mount=type=bind,source=images/boost,target=/images/boost \
@@ -152,8 +157,13 @@ RUN --mount=type=bind,source=images/gtest,target=/images/gtest \
 RUN --mount=type=bind,source=images/ortools,target=/images/ortools \
     bash /images/ortools/install.sh
 
-ENV PATH="$TOOLS/common/bin:$PATH" \
-    LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib:$LD_LIBRARY_PATH"
+ENV PATH="$TOOLS/common/bin:$PATH"
+ENV LD_LIBRARY_PATH="$TOOLS/common/lib64:$TOOLS/common/lib"
+
+# Cleanup: Remove temporary files and build artifacts from builder stage
+# Note: Don't delete .a files from /usr as they might be needed for linking
+RUN rm -rf /tmp/* /var/tmp/* && \
+    find /usr -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 
 #######################################################################
@@ -409,8 +419,11 @@ ARG NGSPICE_REPO_COMMIT \
 RUN --mount=type=bind,source=images/final_structure/install,target=/images/final_structure/install \
     bash /images/final_structure/install/install_klayout.sh
 
-# Install libyaml-cpp for OpenROAD
-RUN apt-get update && apt-get install -y libyaml-cpp-dev && rm -rf /var/lib/apt/lists/*
+# Install libyaml-cpp for OpenROAD (combined with cleanup)
+RUN apt-get update && \
+    apt-get install -y libyaml-cpp-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
 
 RUN --mount=type=bind,source=images/final_structure/configure,target=/images/final_structure/configure \
     cd /images/final_structure/configure/ \
@@ -418,7 +431,15 @@ RUN --mount=type=bind,source=images/final_structure/configure,target=/images/fin
 
 COPY --from=open_pdks  ${PDK_ROOT}                  ${PDK_ROOT}
 COPY --from=ihp_pdk    ${PDK_ROOT}/${IHP_PDK_NAME}  ${PDK_ROOT}/${IHP_PDK_NAME}
+
+# Copy common libraries from builder, excluding compile-time only tools
 COPY --from=builder    ${TOOLS}/common              ${TOOLS}/common
+
+# Cleanup compile-time only tools from common (SWIG, GTest are only needed at build time)
+RUN rm -rf ${TOOLS}/common/bin/swig* ${TOOLS}/common/share/swig && \
+    find ${TOOLS}/common -name "*gtest*" -type f -delete && \
+    find ${TOOLS}/common -name "*GTest*" -type f -delete && \
+    find ${TOOLS}/common -type d -name "*gtest*" -exec rm -rf {} + 2>/dev/null || true
 COPY --from=ihp_pdk    ${TOOLS}/openvaf             ${TOOLS}/openvaf
 COPY --from=ngspice    ${TOOLS}/ngspice             ${TOOLS}/ngspice
 COPY --from=xschem     ${TOOLS}/xschem               ${TOOLS}/xschem
@@ -431,6 +452,12 @@ COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
 COPY --from=openroad_core ${TOOLS}/openroad         ${TOOLS}/openroad
 COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts ${TOOLS}/OpenROAD-flow-scripts
+
+# Strip binaries to reduce image size (20-30% reduction on executables)
+RUN find /opt -type f -executable -not -path "*/common/*" -exec file {} \; | \
+    grep -E "(ELF.*executable|shared object)" | \
+    cut -d: -f1 | \
+    xargs -r strip --strip-unneeded 2>/dev/null || true
 
 # Ensure OpenROAD and OpenVAF are in PATH for all users
 ENV PATH="$TOOLS/openroad/bin:$TOOLS/openvaf/bin:$PATH"

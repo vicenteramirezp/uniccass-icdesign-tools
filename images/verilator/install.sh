@@ -11,6 +11,13 @@ git checkout "${VERILATOR_REPO_COMMIT}"
 
 autoconf
 ./configure --prefix="${TOOLS}/${VERILATOR_NAME}/${REPO_COMMIT_SHORT}"
-make -j`nproc`
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building verilator with $BUILD_JOBS parallel jobs"
+make -j"${BUILD_JOBS}"
 # make test
 make install
+
+# Cleanup: Remove source code
+cd /tmp
+rm -rf "${VERILATOR_NAME}"

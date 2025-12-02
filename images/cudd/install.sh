@@ -10,4 +10,11 @@ git clone --depth=1 -b ${cuddVersion} https://github.com/The-OpenROAD-Project/cu
 cd cudd
 autoreconf
 ./configure --prefix=${cuddPrefix}
-make -j $(nproc) install
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building cudd with $BUILD_JOBS parallel jobs"
+make -j ${BUILD_JOBS} install
+
+# Cleanup: Remove source code
+cd /tmp
+rm -rf cudd

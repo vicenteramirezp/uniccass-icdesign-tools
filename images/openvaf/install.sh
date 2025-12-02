@@ -58,3 +58,9 @@ download_binary () {
 #download_binary
 llvm_installation
 compile_binary
+
+# Cleanup: Remove source code, LLVM installation, and build artifacts
+cd /tmp
+rm -rf "${OPENVAF_NAME}"
+rm -rf LLVM
+rm -f llvm-*.tar.zst

@@ -14,4 +14,12 @@ tar -xf boost-${BOOST_VERSION}.tar.gz
 
 cd boost-${BOOST_VERSION}
 ./bootstrap.sh --prefix="${TOOLS}/common"
-./b2 install --with-iostreams --with-test --with-serialization --with-system --with-thread -j $(nproc)
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building boost with $BUILD_JOBS parallel jobs"
+./b2 install --with-iostreams --with-test --with-serialization --with-system --with-thread -j ${BUILD_JOBS}
+
+# Cleanup: Remove source code and archive
+cd /tmp
+rm -rf boost-${BOOST_VERSION}
+rm -f boost-${BOOST_VERSION}.tar.gz
