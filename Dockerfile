@@ -394,7 +394,7 @@ RUN --mount=type=bind,source=images/iverilog,target=/images/iverilog \
 #######################################################################
 # Compile Risc-v toolchain
 #######################################################################
-FROM builder AS riscv
+FROM builder AS riscv-gnu-toolchain
 
 ARG RISCV_GNU_TOOLCHAIN_REPO_URL \
     RISCV_GNU_TOOLCHAIN__REPO_COMMIT \
@@ -491,6 +491,8 @@ COPY --from=verilator  ${TOOLS}/verilator           ${TOOLS}/verilator
 COPY --from=iverilog   ${TOOLS}/iverilog            ${TOOLS}/iverilog
 COPY --from=yosys      ${TOOLS}/yosys               ${TOOLS}/yosys
 COPY --from=openroad_core ${TOOLS}/openroad         ${TOOLS}/openroad
+COPY --from=riscv-gnu-toolchain     ${TOOLS}/riscv-gnu-toolchain         ${TOOLS}/riscv-gnu-toolchain
+COPY --from=pulp-tools ${TOOLS}/pulp-tools         ${TOOLS}/pulp-tools
 COPY --from=orfs       ${TOOLS}/OpenROAD-flow-scripts ${TOOLS}/OpenROAD-flow-scripts
 
 # Strip binaries to reduce image size (20-30% reduction on executables)

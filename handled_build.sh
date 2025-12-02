@@ -85,7 +85,8 @@ build_and_filter_logs cvc_rv
 build_and_filter_logs verilator
 build_and_filter_logs orfs
 build_and_filter_logs open_pdks
-
+build_and_filter_logs pulp-tools
+build_and_filter_logs riscv
 build_and_filter_logs ihp_pdk
 
 make NO_PULL=Y build |& tee build_all.log || true
