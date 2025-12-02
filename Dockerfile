@@ -96,6 +96,20 @@ ARG ORFS_REPO_URL="https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts
 ARG ORFS_REPO_COMMIT="40674dd5cf48db6dc9028d6ab5a98f107208f5bb"
 ARG ORFS_NAME="OpenROAD-flow-scripts"
 
+
+# Riscv toolchain
+
+ARG RISCV_GNU_TOOLCHAIN_REPO_URL="https://github.com/riscv-collab/riscv-gnu-toolchain.git"
+ARG RISCV_GNU_TOOLCHAIN_REPO_COMMIT="2025.10.28"
+ARG RISCV_GNU_TOOLCHAIN_NAME="riscv-gnu-toolchain"
+
+# Pulp Tool-chain
+ARG PULP_NAME="pulp"
+
+
+
+
+
 #######################################################################
 # Basic configuration for base and builder
 #######################################################################
@@ -375,6 +389,32 @@ ARG IVERILOG_REPO_URL \
 
 RUN --mount=type=bind,source=images/iverilog,target=/images/iverilog \
     bash /images/iverilog/install.sh
+
+
+#######################################################################
+# Compile Risc-v toolchain
+#######################################################################
+FROM builder AS riscv
+
+ARG RISCV_GNU_TOOLCHAIN_REPO_URL \
+    RISCV_GNU_TOOLCHAIN__REPO_COMMIT \
+    RISCV_GNU_TOOLCHAIN_NAME
+
+RUN --mount=type=bind,source=images/riscv-gnu-toolchain,target=/images/riscv-gnu-toolchain \
+    bash /images/riscv-gnu-toolchain/install.sh
+
+#######################################################################
+# Compile Pulp-tools
+#######################################################################
+FROM builder AS pulp-tools
+
+ARG RISCV_GNU_TOOLCHAIN_REPO_URL \
+    RISCV_GNU_TOOLCHAIN__REPO_COMMIT \
+    RISCV_GNU_TOOLCHAIN_NAME
+
+RUN --mount=type=bind,source=images/pulp-tools,target=/images/pulp-tools \
+    bash /images/pulp-tools/install.sh
+
 
 
 #######################################################################
