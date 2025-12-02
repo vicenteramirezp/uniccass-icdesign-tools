@@ -4,7 +4,10 @@ set -ex
 
 export PATH=`realpath $TOOLS/magic/*/bin`:$PATH
 
-volare build --pdk=gf180mcu --clear-build-artifacts -j `nproc` $OPEN_PDKS_REPO_COMMIT
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building gf180mcu PDK with $BUILD_JOBS parallel jobs"
+volare build --pdk=gf180mcu --clear-build-artifacts -j ${BUILD_JOBS} $OPEN_PDKS_REPO_COMMIT
 volare enable --pdk=gf180mcu $OPEN_PDKS_REPO_COMMIT
 
 rm -rf $PDK_ROOT/gf180mcuA
@@ -19,3 +22,7 @@ rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/gf180mcuD/libs.
 rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/gf180mcuD/libs.tech/klayout/lvs/testing
 rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/gf180mcuD/libs.tech/klayout/tech/drc
 rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/gf180mcuD/libs.tech/klayout/tech/lvs
+
+# Cleanup: Remove volare cache and build artifacts
+rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/.build
+rm -rf $PDK_ROOT/volare/gf180mcu/versions/$OPEN_PDKS_REPO_COMMIT/.source
