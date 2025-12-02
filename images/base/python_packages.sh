@@ -33,3 +33,9 @@ uv pip install --system --strict --compile-bytecode --no-cache \
     click \
     "pygobject<3.52.0" \
     xdot
+
+# Cleanup: Remove Python cache files
+find /usr/local -name "*.pyc" -delete 2>/dev/null || true
+find /usr/local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+find ~/.cache -type f -delete 2>/dev/null || true
+rm -rf ~/.cache/pip ~/.cache/uv 2>/dev/null || true

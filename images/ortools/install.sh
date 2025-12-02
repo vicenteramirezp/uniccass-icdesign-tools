@@ -30,7 +30,12 @@ cmake \
     -DCMAKE_INSTALL_PREFIX=${orToolsPrefix} \
     -DCMAKE_CXX_FLAGS="-w" \
     -DCMAKE_C_FLAGS="-w"
-cmake --build build --config Release --target install -v -j $(nproc)
+# Use limited parallelism to reduce RAM usage (OR-Tools is very memory intensive)
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building OR-Tools with $BUILD_JOBS parallel jobs (limited for memory)"
+cmake --build build --config Release --target install -v -j ${BUILD_JOBS}
+# Clean intermediate files after install
+find build -name "*.o" -delete 2>/dev/null || true
 # else
 #     if [[ $version == rodete ]]; then
 #         version=11
@@ -47,3 +52,7 @@ cmake --build build --config Release --target install -v -j $(nproc)
 # fi
 
 CMAKE_PACKAGE_ROOT_ARGS+=" -D ortools_ROOT=$(realpath $orToolsPrefix) "
+
+# Cleanup: Remove source code and build directory
+cd /tmp
+rm -rf or-tools

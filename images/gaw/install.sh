@@ -12,5 +12,12 @@ git checkout "${GAW3_XSCHEM_REPO_COMMIT}"
 chmod +x configure
 autoreconf -f -i
 ./configure --prefix="${TOOLS}/${GAW3_XSCHEM_NAME}/${REPO_COMMIT_SHORT}"
-make -j"$(nproc)"
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building gaw with $BUILD_JOBS parallel jobs"
+make -j"${BUILD_JOBS}"
 make install
+
+# Cleanup: Remove source code
+cd /tmp
+rm -rf "${GAW3_XSCHEM_NAME}"

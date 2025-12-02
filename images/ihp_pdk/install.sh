@@ -1,8 +1,9 @@
 #!/bin/bash
 
 set -ex
+cd /tmp
 
-git clone --branch dev "$IHP_PDK_REPO_URL" ihp
+git clone --depth 1 --branch dev "$IHP_PDK_REPO_URL" ihp
 cd ihp
 git checkout $IHP_PDK_REPO_COMMIT
 git submodule update --init --recursive
@@ -23,3 +24,7 @@ mv ihp-sg13g2 "$PDK_ROOT/$IHP_PDK_NAME"
 # cd "$PDK_ROOT/$IHP_PDK_NAME/libs.tech/ngspice/openvaf"
 # OPENVAF_VERSION=$(ls "$TOOLS/$OPENVAF_NAME")
 # openvaf psp103_nqs.va
+
+# Cleanup: Remove source repository after moving PDK
+cd /tmp
+rm -rf ihp

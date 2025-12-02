@@ -27,7 +27,15 @@ fi
 
 ./autogen.sh
 ./configure --prefix=${swigPrefix} --with-boost=${swigPrefix}
-make -j $(nproc)
-make -j $(nproc) install
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building swig with $BUILD_JOBS parallel jobs"
+make -j ${BUILD_JOBS}
+make -j ${BUILD_JOBS} install
 
 CMAKE_PACKAGE_ROOT_ARGS+=" -D SWIG_ROOT=$(realpath $swigPrefix) "
+
+# Cleanup: Remove source code and archives
+cd /tmp
+rm -rf swig-${swigVersion} swig-v${swigVersion} pcre2-${pcreVersion}
+rm -f v${swigVersion}.tar.gz pcre2-${pcreVersion}.tar.gz

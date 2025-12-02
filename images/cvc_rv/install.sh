@@ -11,5 +11,12 @@ git checkout "${CVC_RV_REPO_COMMIT}"
 autoreconf -vif
 ./configure --disable-nls --prefix="${TOOLS}/${CVC_RV_NAME}/${REPO_COMMIT_SHORT}"
 sed -i 's/api.parser.class/parser_class_name/' src/cdlParser.yy
-make -j"$(nproc)"
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building cvc_rv with $BUILD_JOBS parallel jobs"
+make -j"${BUILD_JOBS}"
 make install
+
+# Cleanup: Remove source code
+cd /tmp
+rm -rf "${CVC_RV_NAME}"

@@ -38,7 +38,10 @@ git checkout "${NGSPICE_REPO_COMMIT}"
     LDFLAGS="-m64 -s" \
     --prefix="${TOOLS}/${NGSPICE_NAME}/${NGSPICE_REPO_COMMIT}"
 
-make -j"$(nproc)"
+# Use limited parallelism to reduce RAM usage
+BUILD_JOBS=${MAX_BUILD_JOBS:-2}
+echo "Building ngspice with $BUILD_JOBS parallel jobs"
+make -j"${BUILD_JOBS}"
 make install
 
 # Regression tests
@@ -65,5 +68,12 @@ make distclean
     LDFLAGS="-m64 -s" \
     --prefix="${TOOLS}/${NGSPICE_NAME}/${NGSPICE_REPO_COMMIT}"
 
-make -j"$(nproc)"
+echo "Building ngspice shared library with $BUILD_JOBS parallel jobs"
+make -j"${BUILD_JOBS}"
 make install
+# Clean intermediate files after install
+find . -name "*.o" -delete 2>/dev/null || true
+
+# Cleanup: Remove source code and build artifacts
+cd /tmp
+rm -rf "${NGSPICE_NAME}"
